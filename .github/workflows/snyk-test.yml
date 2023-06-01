@@ -1,0 +1,32 @@
+name: Snyk Security
+on:
+ workflow_dispatch:
+
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/maven@master
+      continue-on-error: true 
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=low
+
+     
+    - name: Snyk Code test
+    - run: |
+            npm install snyk -g
+            npm install snyk-to-html -g
+            snyk auth ${{ secrets.SNYK_TOKEN }}
+            snyk code test --json-file-output=SnykTestReport.json
+            snyk-to-html -i SnykTestReport.json -o SnykTestReport.html
+            mkdir SnykTestReport && cp SnykTestReport.html SnykTestReport
+            
+    - name: Upload artifacts reports      
+    - uses: actions/upload-artifact@v3 
+      with:
+        name: Snyk code Test
+        path: SnykTestReport
